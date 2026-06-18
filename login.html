@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gourmet Express — Acceso</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script>
+    // Si ya hay sesión activa, saltar directo al restaurante
+    (function() {
+        const token = localStorage.getItem('gourmet_user_token');
+        if (token) {
+            window.location.href = 'restaurante.html';
+        }
+    })();
+    </script>
+    <style>
+        :root {
+            --primary: #C75B39;
+            --primary-light: #E07A5F;
+            --primary-dark: #A0442C;
+            --primary-50: #FDF2EE;
+            --bg: #FDFBF7;
+            --bg-card: #FFFFFF;
+            --text: #1F1D2B;
+            --text-secondary: #4A4858;
+            --text-muted: #8A8898;
+            --border: #E8E4DF;
+            --error: #E63946;
+            --success: #81B29A;
+            --shadow-xl: 0 25px 60px -15px rgba(31, 29, 43, 0.2);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #FDFBF7 0%, #F5F0EB 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+        .login-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1100px;
+            min-height: 650px;
+            background: var(--bg-card);
+            border-radius: 24px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            margin: 2rem;
+            animation: fadeInUp 0.6s ease both;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .login-brand {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-brand::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.6;
+        }
+        .brand-content { position: relative; z-index: 1; text-align: center; }
+        .brand-logo {
+            width: 72px; height: 72px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        .brand-logo svg { width: 36px; height: 36px; stroke: white; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .brand-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; line-height: 1.2; }
+        .brand-subtitle { font-size: 1.05rem; opacity: 0.85; line-height: 1.6; max-width: 320px; font-weight: 300; }
+        .brand-features { margin-top: 3rem; display: flex; flex-direction: column; gap: 1rem; text-align: left; max-width: 280px; }
+        .brand-feature { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; opacity: 0.9; }
+        .brand-feature svg { width: 20px; height: 20px; stroke: white; stroke-width: 2.5; fill: none; flex-shrink: 0; }
+
+        .login-form-area {
+            flex: 1; padding: 3.5rem 3rem;
+            display: flex; flex-direction: column; justify-content: center;
+            max-width: 500px; margin: 0 auto; width: 100%;
+        }
+        .form-header { margin-bottom: 2.5rem; }
+        .form-header h2 { font-family: 'Playfair Display', serif; font-size: 1.875rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+        .form-header p { color: var(--text-muted); font-size: 0.95rem; }
+        .form-toggle {
+            display: flex; background: var(--bg); border-radius: 12px;
+            padding: 4px; margin-bottom: 2rem; border: 1px solid var(--border);
+        }
+        .form-toggle button {
+            flex: 1; padding: 0.625rem; border: none; background: transparent;
+            color: var(--text-muted); font-weight: 600; font-size: 0.875rem;
+            border-radius: 10px; cursor: pointer; transition: all 0.25s ease;
+            font-family: inherit;
+        }
+        .form-toggle button.active {
+            background: white; color: var(--primary);
+            box-shadow: 0 2px 8px rgba(199, 91, 57, 0.12);
+        }
+        .form-group { margin-bottom: 1.25rem; position: relative; }
+        .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.8px; }
+        .form-input {
+            width: 100%; padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid var(--border); border-radius: 14px;
+            font-size: 0.95rem; font-family: inherit; background: var(--bg);
+            color: var(--text); transition: all 0.25s ease;
+        }
+        .form-input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--primary-50); }
+        .form-input::placeholder { color: #B8B6C4; }
+        .form-input.error { border-color: var(--error); animation: shake 0.4s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)} }
+        .input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; transition: color 0.25s ease; }
+        .form-group:focus-within .input-icon { color: var(--primary); }
+        .input-icon svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        .form-options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.85rem; }
+        .checkbox-wrap { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-secondary); }
+        .checkbox-wrap input { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+        .forgot-link { color: var(--primary); text-decoration: none; font-weight: 600; transition: opacity 0.2s; }
+        .forgot-link:hover { opacity: 0.8; text-decoration: underline; }
+
+        .submit-btn {
+            width: 100%; padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; border: none; border-radius: 14px;
+            font-size: 1rem; font-weight: 700; font-family: inherit;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(199, 91, 57, 0.3);
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(199, 91, 57, 0.4); }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .submit-btn svg { width: 18px; height: 18px; stroke: white; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        .alert {
+            padding: 0.875rem 1rem; border-radius: 12px; font-size: 0.875rem;
+            font-weight: 500; margin-bottom: 1.25rem; display: none;
+            align-items: center; gap: 0.5rem; animation: fadeInUp 0.3s ease;
+        }
+        .alert.show { display: flex; }
+        .alert-error { background: rgba(230,57,70,0.08); color: var(--error); border: 1px solid rgba(230,57,70,0.2); }
+        .alert-success { background: rgba(129,178,154,0.1); color: var(--success); border: 1px solid rgba(129,178,154,0.25); }
+        .alert svg { width: 18px; height: 18px; stroke-width: 2.5; flex-shrink: 0; }
+
+        .divider { display: flex; align-items: center; gap: 1rem; margin: 1.75rem 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        .social-login { display: flex; gap: 0.75rem; }
+        .social-btn {
+            flex: 1; padding: 0.75rem; border: 2px solid var(--border); border-radius: 12px;
+            background: white; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
+            font-family: inherit; font-weight: 600; font-size: 0.85rem;
+            color: var(--text-secondary); gap: 0.5rem;
+        }
+        .social-btn:hover { border-color: var(--primary-200); background: var(--primary-50); color: var(--primary); transform: translateY(-1px); }
+        .social-btn svg { width: 18px; height: 18px; }
+
+        .form-footer { margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+        .form-footer a { color: var(--primary); font-weight: 600; text-decoration: none; cursor: pointer; }
+        .form-footer a:hover { text-decoration: underline; }
+        .hidden { display: none !important; }
+
+        @media (max-width: 900px) {
+            .login-wrapper { flex-direction: column; margin: 1rem; max-width: 480px; }
+            .login-brand { padding: 2.5rem 2rem; min-height: 280px; }
+            .brand-title { font-size: 2rem; }
+            .brand-features { display: none; }
+            .login-form-area { padding: 2.5rem 2rem; }
+        }
+        @media (max-width: 480px) {
+            .login-form-area { padding: 2rem 1.5rem; }
+            .form-header h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-brand">
+            <div class="brand-content">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                </div>
+                <div class="brand-title">Gourmet<br>Express</div>
+                <p class="brand-subtitle">La mejor comida gourmet, directo a tu puerta. Ordena en segundos y disfruta.</p>
+                <div class="brand-features">
+                    <div class="brand-feature">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Entrega en 30 minutos</span>
+                    </div>
+                    <div class="brand-feature">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Pagos 100% seguros</span>
+                    </div>
+                    <div class="brand-feature">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>+50 platillos artesanales</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-form-area">
+            <div class="form-header">
+                <h2 id="formTitle">Bienvenido de vuelta</h2>
+                <p id="formSubtitle">Ingresa tus datos para continuar</p>
+            </div>
+
+            <div class="form-toggle">
+                <button class="active" id="tabLogin" onclick="switchTab('login')">Iniciar sesión</button>
+                <button id="tabRegister" onclick="switchTab('register')">Crear cuenta</button>
+            </div>
+
+            <div class="alert alert-error" id="alertError">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span id="errorText">Error</span>
+            </div>
+            <div class="alert alert-success" id="alertSuccess">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span id="successText">Éxito</span>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <div style="position:relative">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </span>
+                        <input type="email" class="form-input" id="loginEmail" placeholder="tu@email.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <div style="position:relative">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required minlength="6">
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="checkbox-wrap">
+                        <input type="checkbox" id="rememberMe">
+                        <span>Recordarme</span>
+                    </label>
+                    <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+                <button type="submit" class="submit-btn" id="loginBtn">
+                    <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Iniciar sesión
+                </button>
+            </form>
+
+            <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Nombre completo</label>
+                    <div style="position:relative">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </span>
+                        <input type="text" class="form-input" id="regName" placeholder="Ej: María González" required minlength="3">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <div style="position:relative">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </span>
+                        <input type="email" class="form-input" id="regEmail" placeholder="tu@email.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <div style="position:relative">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <input type="password" class="form-input" id="regPassword" placeholder="Mínimo 6 caracteres" required minlength="6">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" id="regBtn">
+                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    Crear cuenta
+                </button>
+            </form>
+
+            <div class="divider">o continúa con</div>
+            <div class="social-login">
+                <button class="social-btn" onclick="socialLogin('google')">
+                    <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Google
+                </button>
+                <button class="social-btn" onclick="socialLogin('facebook')">
+                    <svg viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    Facebook
+                </button>
+            </div>
+
+            <div class="form-footer">
+                <p id="footerText">¿No tienes cuenta? <a onclick="switchTab('register')">Regístrate gratis</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+            const title = document.getElementById('formTitle');
+            const subtitle = document.getElementById('formSubtitle');
+            const footer = document.getElementById('footerText');
+            hideAlerts();
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.classList.add('active');
+                tabRegister.classList.remove('active');
+                title.textContent = 'Bienvenido de vuelta';
+                subtitle.textContent = 'Ingresa tus datos para continuar';
+                footer.innerHTML = '¿No tienes cuenta? <a onclick="switchTab(\'register\')">Regístrate gratis</a>';
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabLogin.classList.remove('active');
+                tabRegister.classList.add('active');
+                title.textContent = 'Crea tu cuenta';
+                subtitle.textContent = 'Únete y disfruta de la experiencia gourmet';
+                footer.innerHTML = '¿Ya tienes cuenta? <a onclick="switchTab(\'login\')">Inicia sesión</a>';
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('errorText').textContent = msg;
+            document.getElementById('alertError').classList.add('show');
+            document.getElementById('alertSuccess').classList.remove('show');
+        }
+        function showSuccess(msg) {
+            document.getElementById('successText').textContent = msg;
+            document.getElementById('alertSuccess').classList.add('show');
+            document.getElementById('alertError').classList.remove('show');
+        }
+        function hideAlerts() {
+            document.getElementById('alertError').classList.remove('show');
+            document.getElementById('alertSuccess').classList.remove('show');
+        }
+        function setLoading(btn, loading) {
+            btn.disabled = loading;
+            btn.style.opacity = loading ? '0.7' : '1';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            hideAlerts();
+            const btn = document.getElementById('loginBtn');
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            setLoading(btn, true);
+            try {
+                const res = await fetch(API_URL + '/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showSuccess('¡Inicio de sesión exitoso! Redirigiendo...');
+                    localStorage.setItem('gourmet_user_token', data.token);
+                    localStorage.setItem('gourmet_user_name', data.name);
+                    setTimeout(() => window.location.href = 'restaurante.html', 1200);
+                } else {
+                    showError(data.error || 'Credenciales incorrectas');
+                }
+            } catch (err) {
+                showError('No se pudo conectar con el servidor. ¿Está corriendo Flask?');
+            }
+            setLoading(btn, false);
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            hideAlerts();
+            const btn = document.getElementById('regBtn');
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            setLoading(btn, true);
+            try {
+                const res = await fetch(API_URL + '/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showSuccess('¡Cuenta creada! Ahora inicia sesión');
+                    setTimeout(() => switchTab('login'), 1500);
+                } else {
+                    showError(data.error || 'Error al crear la cuenta');
+                }
+            } catch (err) {
+                showError('No se pudo conectar con el servidor. ¿Está corriendo Flask?');
+            }
+            setLoading(btn, false);
+        }
+
+        function socialLogin(provider) {
+            showError('Login con ' + provider + ' no configurado aún');
+        }
+    </script>
+</body>
+</html>
+

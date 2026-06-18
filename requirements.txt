@@ -1,0 +1,4 @@
+pip install flask flask-cors werkzeug
+flask>=2.3.0
+flask-cors>=4.0.0
+werkzeug>=2.3.0

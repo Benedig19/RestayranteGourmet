@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gourmet Express — Restaurante en Línea</title>
+    <meta name="description" content="Ordena comida gourmet en línea. Entrega a domicilio.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <header id="header" class="header">
+        <div class="header-inner">
+            <a href="#" class="logo" onclick="app.goHome(); return false;">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                </div>
+                <div class="logo-text"><span class="logo-main">Gourmet</span><span class="logo-sub">Express</span></div>
+            </a>
+            <nav class="header-nav">
+                <button type="button" class="nav-btn active" onclick="app.goHome()">Inicio</button>
+                <button type="button" class="nav-btn" onclick="app.showOrders()">Pedidos</button>
+                <button type="button" class="nav-btn" onclick="app.showProfile()">Perfil</button>
+            </nav>
+            <div class="header-actions">
+                <button type="button" class="theme-toggle" onclick="app.toggleTheme()" title="Cambiar tema">Tema</button>
+                <button type="button" class="cart-btn" id="cartBtn" onclick="app.toggleCart()" aria-label="Carrito">
+                    Carrito <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <script>
+    // Verificar sesión al cargar la página
+    (function() {
+        const token = localStorage.getItem('gourmet_user_token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        // Opcional: verificar con el backend que el token sigue válido
+        fetch('http://localhost:5000/api/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        }).then(r => {
+            if (!r.ok) {
+                localStorage.removeItem('gourmet_user_token');
+                localStorage.removeItem('gourmet_user_name');
+                window.location.href = 'login.html';
+            }
+        }).catch(() => {
+            // Si el servidor está apagado, deja pasar igual (modo offline)
+        });
+    })();
+</script>
+
+    <main id="mainContent" class="main">
+        <section id="heroSection" class="hero">
+            <div class="hero-copy">
+                <span class="hero-badge">Entrega rápida a tu puerta</span>
+                <h1>Sabores gourmet desde la cocina hasta tu mesa</h1>
+                <p>Explora platillos frescos y elaborados por chefs expertos. Ordena con un solo clic y recibe tu pedido en minutos.</p>
+                <div class="hero-search">
+                    <input id="searchInput" type="text" placeholder="Buscar platillos, ingredientes..." oninput="app.searchProducts(this.value)">
+                </div>
+            </div>
+        </section>
+
+        <section id="menuSection" class="menu-section">
+            <div class="menu-layout">
+                <aside class="sidebar">
+                    <div class="sidebar-card">
+                        <h3>Categorías</h3>
+                        <ul class="category-list" id="categoryList">
+                            <li class="category-item active" data-category="all" onclick="app.filterCategory('all')"><span>Todo</span><span id="count-all">0</span></li>
+                            <li class="category-item" data-category="entradas" onclick="app.filterCategory('entradas')"><span>Entradas</span><span id="count-entradas">0</span></li>
+                            <li class="category-item" data-category="platos" onclick="app.filterCategory('platos')"><span>Platos</span><span id="count-platos">0</span></li>
+                            <li class="category-item" data-category="postres" onclick="app.filterCategory('postres')"><span>Postres</span><span id="count-postres">0</span></li>
+                            <li class="category-item" data-category="bebidas" onclick="app.filterCategory('bebidas')"><span>Bebidas</span><span id="count-bebidas">0</span></li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-card promo-card">
+                        <h4>Promoción</h4>
+                        <p>Usa <strong>BENVENIDO</strong> y recibe <strong>20% de descuento</strong> en tu primera orden.</p>
+                    </div>
+                </aside>
+
+                <section class="products-area">
+                    <div class="products-header">
+                        <div>
+                            <h2 id="sectionTitle">Todo el Menú</h2>
+                            <p class="products-count" id="productsCount">0 productos</p>
+                        </div>
+                        <div>
+                            <select id="sortSelect" onchange="app.sortProducts(this.value)">
+                                <option value="popular">Más populares</option>
+                                <option value="price-asc">Precio: menor a mayor</option>
+                                <option value="price-desc">Precio: mayor a menor</option>
+                                <option value="name">Nombre A-Z</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="productsGrid" class="products-grid"></div>
+                    <div id="noResults" class="no-results" style="display:none;">
+                        <p>No encontramos resultados. Intenta otra búsqueda.</p>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="ordersSection" class="orders-section" style="display:none;">
+            <div class="panel-card">
+                <h2>Mis Pedidos</h2>
+                <div id="ordersList" class="orders-list"></div>
+            </div>
+        </section>
+
+        <section id="profileSection" class="profile-section" style="display:none;">
+            <div class="panel-card profile-card-main">
+                <div class="profile-card-top">
+                    <div class="profile-avatar" id="profileInitial">U</div>
+                    <div>
+                        <h2 id="profileName">Usuario</h2>
+                        <p id="profileEmail">usuario@email.com</p>
+                        <p id="profilePhone">—</p>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-card"><span id="statOrders">0</span><small>Pedidos</small></div>
+                    <div class="stat-card"><span id="statSpent">$0.00</span><small>Gastado</small></div>
+                    <div class="stat-card"><span id="statFavorites">0</span><small>Favoritos</small></div>
+                </div>
+                <div class="profile-actions">
+                    <button type="button" class="btn btn-secondary" onclick="app.clearHistory()">Borrar historial</button>
+                    <button type="button" class="btn btn-danger" onclick="app.resetAll()">Restablecer todo</button>
+                    <button class="nav-btn" onclick="app.logout()" title="Cerrar sesión">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    Salir
+</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div>
+                <p class="footer-brand">Gourmet Express</p>
+                <p>La mejor comida, directo a tu puerta.</p>
+            </div>
+            <div class="footer-links">
+                <div>
+                    <h4>Menú</h4>
+                    <a href="#" onclick="app.filterCategory('entradas'); return false;">Entradas</a>
+                    <a href="#" onclick="app.filterCategory('platos'); return false;">Platos</a>
+                    <a href="#" onclick="app.filterCategory('postres'); return false;">Postres</a>
+                    <a href="#" onclick="app.filterCategory('bebidas'); return false;">Bebidas</a>
+                </div>
+                <div>
+                    <h4>Contacto</h4>
+                    <p>📧 benedigraulh@gmail.com</p>
+                    <p>📞 918461254</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 Gourmet Express. Todos los derechos reservados.</div>
+    </footer>
+
+    <div id="cartOverlay" class="cart-overlay" onclick="app.toggleCart(false)"></div>
+    <aside id="cartSidebar" class="cart-sidebar" aria-label="Carrito">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button type="button" class="icon-button" onclick="app.toggleCart(false)">Cerrar</button>
+        </div>
+        <div id="cartItems" class="cart-items"></div>
+        <div id="cartFooter" class="cart-footer" style="display:none;">
+            <div class="cart-coupon">
+                <input id="couponInput" type="text" placeholder="Código de cupón">
+                <button type="button" class="btn btn-secondary" onclick="app.applyCoupon()">Aplicar</button>
+            </div>
+            <div id="couponMsg" class="coupon-msg"></div>
+            <div class="summary-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+            <div class="summary-row" id="discountRow" style="display:none;"><span>Descuento</span><span id="discountAmount">-$0.00</span></div>
+            <div class="summary-row"><span>Envío</span><span id="shipping">$49.00</span></div>
+            <div class="summary-row"><span>Impuestos</span><span id="taxes">$0.00</span></div>
+            <div class="summary-row total"><span>Total</span><span id="total">$0.00</span></div>
+            <button type="button" class="btn btn-primary checkout-btn" onclick="app.openCheckout()">Proceder al Pago</button>
+        </div>
+    </aside>
+
+    <div id="checkoutOverlay" class="checkout-overlay">
+        <div class="checkout-modal">
+            <div class="checkout-header">
+                <h2>Finalizar Pedido</h2>
+                <button type="button" class="icon-button" onclick="app.closeCheckout()">Cerrar</button>
+            </div>
+            <div class="stepper">
+                <div class="stepper-track"><div id="stepperFill" class="stepper-fill"></div></div>
+            </div>
+            <div id="checkoutBody" class="checkout-body">
+                <div class="form-step active" data-step="1">
+                    <div class="form-grid">
+                        <label class="form-group">Nombre completo<span class="required">*</span><input id="contactName" type="text" class="form-input" placeholder="Ej: María Elena González"><span id="errorName" class="error-msg">Ingresa tu nombre completo</span></label>
+                        <label class="form-group">Correo electrónico<span class="required">*</span><input id="contactEmail" type="email" class="form-input" placeholder="Ej: maria@email.com"><span id="errorEmail" class="error-msg">Correo inválido</span></label>
+                        <label class="form-group">Teléfono celular<span class="required">*</span><input id="contactPhone" type="tel" class="form-input" placeholder="Ej: 55 1234 5678"><span id="errorPhone" class="error-msg">Teléfono inválido</span></label>
+                    </div>
+                </div>
+                <div class="form-step" data-step="2">
+                    <div class="form-grid">
+                        <label class="form-group full">Calle<span class="required">*</span><input id="addrStreet" type="text" class="form-input" placeholder="Ej: Avenida Insurgentes"><span id="errorStreet" class="error-msg">Requerido</span></label>
+                        <label class="form-group">Número exterior<span class="required">*</span><input id="addrNumExt" type="text" class="form-input" placeholder="Ej: 123"><span id="errorNumExt" class="error-msg">Requerido</span></label>
+                        <label class="form-group">Número interior<input id="addrNumInt" type="text" class="form-input" placeholder="Ej: 4B"></label>
+                        <label class="form-group">Colonia<span class="required">*</span><input id="addrColonia" type="text" class="form-input" placeholder="Ej: Roma Norte"><span id="errorColonia" class="error-msg">Requerido</span></label>
+                        <label class="form-group">Ciudad<span class="required">*</span><input id="addrCity" type="text" class="form-input" placeholder="Ej: Ciudad de México"><span id="errorCity" class="error-msg">Requerido</span></label>
+                        <label class="form-group">Código postal<span class="required">*</span><input id="addrZip" type="text" class="form-input" placeholder="Ej: 06700"><span id="errorZip" class="error-msg">5 dígitos</span></label>
+                        <label class="form-group full">Referencias<textarea id="addrRefs" class="form-input" rows="3" placeholder="Ej: Portón negro..."></textarea></label>
+                    </div>
+                </div>
+                <div class="form-step" data-step="3">
+                    <div class="form-grid preferences-grid">
+                        <label class="checkbox-card" onclick="app.toggleCheckbox(this,'prefVeg')"><input id="prefVeg" type="checkbox"><div><strong>Vegetariano</strong><p>Opciones libres de carne.</p></div></label>
+                        <label class="checkbox-card" onclick="app.toggleCheckbox(this,'prefGluten')"><input id="prefGluten" type="checkbox"><div><strong>Sin gluten</strong><p>Alimentos sin gluten.</p></div></label>
+                        <label class="checkbox-card" onclick="app.toggleCheckbox(this,'prefSpicy')"><input id="prefSpicy" type="checkbox"><div><strong>Picante</strong><p>Me gusta el sabor intenso.</p></div></label>
+                        <label class="checkbox-card" onclick="app.toggleCheckbox(this,'prefDairy')"><input id="prefDairy" type="checkbox"><div><strong>Sin lácteos</strong><p>Prefiero libre de lactosa.</p></div></label>
+                    </div>
+                    <label class="form-group full">Notas para el chef<textarea id="chefNotes" class="form-input" rows="3" placeholder="Ej: Sin cebolla, salsa aparte..."></textarea></label>
+                </div>
+                <div class="form-step" data-step="4">
+                    <div class="payment-methods">
+                        <label class="payment-card active" onclick="app.selectPayment('card', this)"><input type="radio" name="payment" value="card" checked>Tarjeta</label>
+                        <label class="payment-card" onclick="app.selectPayment('cash', this)"><input type="radio" name="payment" value="cash">Efectivo</label>
+                        <label class="payment-card" onclick="app.selectPayment('transfer', this)"><input type="radio" name="payment" value="transfer">Transferencia</label>
+                    </div>
+                    <div id="cardForm" class="payment-panel">
+                        <label class="form-group full">Nombre del titular<input id="cardName" type="text" class="form-input" placeholder="Como aparece en la tarjeta"><span id="errorCardName" class="error-msg">Requerido</span></label>
+                        <label class="form-group full">Número de tarjeta<input id="cardNumber" type="text" class="form-input" placeholder="0000 0000 0000 0000"><span id="errorCardNumber" class="error-msg">Número inválido</span></label>
+                        <div class="form-row">
+                            <label class="form-group">Vencimiento<input id="cardExpiry" type="text" class="form-input" placeholder="MM/AA"><span id="errorCardExpiry" class="error-msg">Formato inválido</span></label>
+                            <label class="form-group">CVV<input id="cardCVV" type="text" class="form-input" placeholder="123"><span id="errorCardCVV" class="error-msg">3 o 4 dígitos</span></label>
+                        </div>
+                    </div>
+                    <div id="cashForm" class="payment-panel" style="display:none;"><p>Entrega en efectivo al repartidor.</p><label class="form-group">¿Con cuánto pagarás?<input id="cashAmount" type="number" class="form-input" placeholder="Ej: 500"></label></div>
+                    <div id="transferForm" class="payment-panel" style="display:none;"><p>Realiza tu SPEI con los datos que aparecen abajo.</p><div class="transfer-details"><div><strong>Banco:</strong> BBVA México</div><div><strong>Cuenta:</strong> 0123 4567 8901 2345 67</div><div><strong>CLABE:</strong> 012 345 678 901 234 567</div><div><strong>Referencia:</strong> <span id="transferRef">—</span></div></div></div>
+                </div>
+                <div id="successScreen" class="success-screen">
+                    <div class="success-card">
+                        <h3>¡Pedido confirmado!</h3>
+                        <p>Tu orden fue recibida correctamente.</p>
+                        <p><strong>Número:</strong> <span id="orderNumber">—</span></p>
+                        <p><strong>Total:</strong> <span id="orderTotal">$0.00</span></p>
+                        <p id="orderDate">—</p>
+                        <button type="button" class="btn btn-primary" onclick="app.reset()">Hacer otro pedido</button>
+                    </div>
+                </div>
+            </div>
+            <div id="checkoutActions" class="checkout-actions">
+                <button type="button" id="btnBack" class="btn btn-secondary" onclick="app.prevStep()" style="display:none;">Atrás</button>
+                <button type="button" id="btnNext" class="btn btn-primary" onclick="app.nextStep()">Siguiente</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="productModalOverlay" class="modal-overlay" onclick="app.closeProductModal()"></div>
+    <div id="productModal" class="product-modal">
+        <button type="button" class="modal-close" onclick="app.closeProductModal()">Cerrar</button>
+        <div id="productModalContent" class="product-modal-content"></div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Procesando tu pago...</p>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <div id="confettiContainer" class="confetti-container"></div>
+
+    <script src="app.js" defer></script>
+</body>
+</html>
